@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  web:
+    build:
+      context: ./
+      dockerfile: ./
+    ports:
+      - "8000:8000"
+      - "5555:5555"
+    environment:
+      - PORT=8000
+    security_opt:
+      - "seccomp:unconfined"
+    cap_add:
+      - SYS_PTRACE
+    depends_on:
+      - redis
+    restart: always
+    volumes:
+      - ./:/app
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+    restart: always

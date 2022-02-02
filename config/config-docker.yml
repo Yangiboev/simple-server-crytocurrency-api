@@ -1,0 +1,36 @@
+server:
+  AppVersion: 1.0.0
+  Port: :8000
+  Mode: Development
+  ReadTimeout: 10
+  WriteTimeout: 10
+  CtxDefaultTimeout: 12
+  Debug: false
+
+logger:
+  Development: true
+  DisableCaller: false
+  DisableStacktrace: false
+  Encoding: console
+  Level: info
+
+redis:
+  RedisAddr: redis:6379
+  RedisPassword:
+  RedisDb: 0
+  RedisDefaultdb: 0
+  MinIdleConns: 200
+  PoolSize: 12000
+  PoolTimeout: 240
+  Password: ""
+  DB: 0
+
+
+metrics:
+  url: 0.0.0.0:7070
+  service: api
+  
+jaeger:
+  Host: localhost:6831
+  ServiceName: REST_API
+  LogSpans: true

@@ -1,0 +1,104 @@
+definitions:
+  models.Block:
+    properties:
+      block_hash:
+        type: string
+      block_number:
+        type: integer
+      date_time:
+        type: string
+      network_code:
+        type: string
+      next_block_hash:
+        type: string
+      previous_block_hash:
+        type: string
+      size:
+        type: integer
+      transactions:
+        items:
+          $ref: '#/definitions/models.Transaction'
+        type: array
+    required:
+    - block_hash
+    - block_number
+    - date_time
+    - network_code
+    - next_block_hash
+    - previous_block_hash
+    - size
+    - transactions
+    type: object
+  models.Transaction:
+    properties:
+      date_time:
+        type: string
+      fee:
+        type: number
+      sent_value:
+        type: number
+      transaction_id:
+        type: string
+    required:
+    - date_time
+    - fee
+    - sent_value
+    type: object
+info:
+  contact: {}
+paths:
+  /block/{network}/{block_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get block by block hash using handler
+      parameters:
+      - description: 'we only support the following cryptocurrency network codes:
+          BTC, LTC and DOGE.'
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: block_id
+        in: path
+        name: block_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Block'
+      summary: Get block by block hash
+      tags:
+      - cryptocurrency
+  /transaction/{network}/{transaction_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get transaction by transaction hash using handler
+      parameters:
+      - description: 'we only support the following cryptocurrency network codes:
+          BTC, LTC and DOGE.'
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: transaction_id
+        in: path
+        name: transaction_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Transaction'
+      summary: Get transaction by transaction hash
+      tags:
+      - cryptocurrency
+swagger: "2.0"
