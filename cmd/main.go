@@ -49,14 +49,18 @@ func main() {
 		log.Fatalf("can not parse configuration file: %v", err)
 	}
 
-	appLogger := logger.NewApiLogger(cfg)
+	logger := logger.New(cfg.Server.Mode, &cfg.Logger)
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			log.Fatalf("could not sync logger: %v\n", err)
+		}
+	}()
 
-	appLogger.InitLogger()
-	appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s, SSL: %s", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode)
+	logger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s, SSL: %s", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode)
 
 	redisClient := redis.NewRedisClient(cfg)
 	defer redisClient.Close()
-	appLogger.Info("Redis connected")
+	logger.Info("Redis connected")
 
 	jaegerCfgInstance := jaegercfg.Configuration{
 		ServiceName: cfg.Jaeger.ServiceName,
@@ -77,13 +81,13 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot create tracer", err)
 	}
-	appLogger.Info("Jaeger connected")
+	logger.Info("Jaeger connected")
 
 	opentracing.SetGlobalTracer(tracer)
 	defer closer.Close()
-	appLogger.Info("Opentracing connected")
+	logger.Info("Opentracing connected")
 
-	s := server.NewServer(cfg, redisClient, appLogger)
+	s := server.NewServer(cfg, redisClient, logger)
 	if err = s.Run(); err != nil {
 		log.Fatal(err)
 	}

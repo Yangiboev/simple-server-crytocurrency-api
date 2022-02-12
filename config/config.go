@@ -8,6 +8,15 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	DevelopmentMode string = "Development"
+	ProductionMode  string = "Production"
+)
+
+const (
+	LogConsoleEncoding string = "console"
+)
+
 // App config struct
 type Config struct {
 	Server  Server
