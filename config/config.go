@@ -10,15 +10,15 @@ import (
 
 // App config struct
 type Config struct {
-	Server  ServerConfig
-	Redis   RedisConfig
+	Server  Server
+	Redis   Redis
 	Metrics Metrics
 	Logger  Logger
 	Jaeger  Jaeger
 }
 
 // Server config struct
-type ServerConfig struct {
+type Server struct {
 	AppVersion        string
 	Port              string
 	Mode              string
@@ -39,7 +39,7 @@ type Logger struct {
 }
 
 // Redis config
-type RedisConfig struct {
+type Redis struct {
 	RedisAddr      string
 	RedisPassword  string
 	RedisDB        string
@@ -63,7 +63,7 @@ type Jaeger struct {
 	LogSpans    bool
 }
 
-func LoadConfig(filename string) (*viper.Viper, error) {
+func Load(filename string) (*viper.Viper, error) {
 	v := viper.New()
 
 	v.SetConfigName(filename)
@@ -79,7 +79,7 @@ func LoadConfig(filename string) (*viper.Viper, error) {
 	return v, nil
 }
 
-func ParseConfig(v *viper.Viper) (*Config, error) {
+func Parse(v *viper.Viper) (*Config, error) {
 	var c Config
 
 	err := v.Unmarshal(&c)

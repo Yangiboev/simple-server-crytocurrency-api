@@ -14,4 +14,4 @@ RUN export CGO_ENABLED=0 && \
 FROM alpine
 COPY --from=builder config ./config
 COPY --from=builder crypto .
-ENTRYPOINT [ "/crypto" ]
+ENTRYPOINT [ "/crypto", "-environment", "docker", "-path", "/config/config-docker" ]
