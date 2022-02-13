@@ -1,24 +1,31 @@
 package config
 
 import (
-	"errors"
-	"log"
 	"time"
 
 	"github.com/spf13/viper"
 )
 
+const (
+	DevelopmentMode string = "Development"
+	ProductionMode  string = "Production"
+)
+
+const (
+	LogConsoleEncoding string = "console"
+)
+
 // App config struct
 type Config struct {
-	Server  ServerConfig
-	Redis   RedisConfig
+	Server  Server
+	Redis   Redis
 	Metrics Metrics
 	Logger  Logger
 	Jaeger  Jaeger
 }
 
 // Server config struct
-type ServerConfig struct {
+type Server struct {
 	AppVersion        string
 	Port              string
 	Mode              string
@@ -39,7 +46,7 @@ type Logger struct {
 }
 
 // Redis config
-type RedisConfig struct {
+type Redis struct {
 	RedisAddr      string
 	RedisPassword  string
 	RedisDB        string
@@ -63,28 +70,37 @@ type Jaeger struct {
 	LogSpans    bool
 }
 
-func LoadConfig(filename string) (*viper.Viper, error) {
-	v := viper.New()
+func New(filename string) (*Config, error) {
+	return parseFile(filename)
+}
+
+func getViper(filename string) (*viper.Viper, error) {
+	var (
+		v = viper.New()
+	)
 
 	v.SetConfigName(filename)
 	v.AddConfigPath(".")
 	v.AutomaticEnv()
+
 	if err := v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			return nil, errors.New("config file not found")
-		}
 		return nil, err
 	}
 
 	return v, nil
 }
 
-func ParseConfig(v *viper.Viper) (*Config, error) {
-	var c Config
+func parseFile(filename string) (*Config, error) {
+	var (
+		c Config
+	)
 
-	err := v.Unmarshal(&c)
+	v, err := getViper(filename)
 	if err != nil {
-		log.Printf("unable to decode into struct, %v", err)
+		return nil, err
+	}
+
+	if err := v.Unmarshal(&c); err != nil {
 		return nil, err
 	}
 

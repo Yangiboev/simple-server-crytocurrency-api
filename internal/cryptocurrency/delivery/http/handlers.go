@@ -12,6 +12,7 @@ import (
 	"github.com/Yangiboev/simple-server-crytocurrency-api/pkg/httpErrors"
 	"github.com/Yangiboev/simple-server-crytocurrency-api/pkg/logger"
 	"github.com/Yangiboev/simple-server-crytocurrency-api/pkg/utils"
+	"github.com/Yangiboev/simple-server-crytocurrency-api/pkg/validator"
 )
 
 // cryptoCurrency handlers
@@ -42,7 +43,7 @@ func (h cryptoCurrencyHandlers) GetBlockByID() echo.HandlerFunc {
 
 		blockID := c.Param("block_id")
 		network := c.Param("network")
-		if utils.IsValidNetwork(network) {
+		if validator.IsValidNetwork(network) {
 			utils.LogResponseError(c, h.logger, httpErrors.BadQueryParams)
 			return c.JSON(httpErrors.ErrorResponse(httpErrors.BadQueryParams))
 		}
@@ -76,7 +77,7 @@ func (h cryptoCurrencyHandlers) GetTransactionByID() echo.HandlerFunc {
 
 		transactionID := c.Param("transaction_id")
 		network := c.Param("network")
-		if utils.IsValidNetwork(network) {
+		if validator.IsValidNetwork(network) {
 			utils.LogResponseError(c, h.logger, httpErrors.BadQueryParams)
 			return c.JSON(httpErrors.ErrorResponse(httpErrors.BadQueryParams))
 		}

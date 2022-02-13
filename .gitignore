@@ -30,3 +30,4 @@ ssl/
 
 # Avatars storage directory
 avatars/
+bin/

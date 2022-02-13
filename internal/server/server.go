@@ -31,14 +31,19 @@ type Server struct {
 	logger      logger.Logger
 }
 
-// NewServer New Server constructor
-func NewServer(cfg *config.Config, redisClient *redis.Client, logger logger.Logger) *Server {
-	return &Server{echo: echo.New(), cfg: cfg, redisClient: redisClient, logger: logger}
+// New creates new server instance
+func New(cfg *config.Config, echo *echo.Echo, redisClient *redis.Client, logger logger.Logger) *Server {
+	return &Server{
+		echo:        echo,
+		cfg:         cfg,
+		redisClient: redisClient,
+		logger:      logger,
+	}
 }
 
 func (s *Server) Run() error {
 	// if s.cfg.Server.SSL {
-	// 	if err := s.MapHandlers(s.echo); err != nil {
+	// 	if err := s.MapHandlers(); err != nil {
 	// 		return err
 	// 	}
 
@@ -88,7 +93,7 @@ func (s *Server) Run() error {
 		}
 	}()
 
-	if err := s.MapHandlers(s.echo); err != nil {
+	if err := s.MapHandlers(); err != nil {
 		return err
 	}
 
