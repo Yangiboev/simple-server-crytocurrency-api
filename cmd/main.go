@@ -9,6 +9,7 @@ import (
 	"github.com/Yangiboev/simple-server-crytocurrency-api/pkg/jaeger"
 	"github.com/Yangiboev/simple-server-crytocurrency-api/pkg/logger"
 	redis "github.com/Yangiboev/simple-server-crytocurrency-api/pkg/redis"
+	"github.com/Yangiboev/simple-server-crytocurrency-api/pkg/validator"
 )
 
 // @title Go REST API
@@ -24,9 +25,14 @@ func main() {
 		configPath  string = "./config/local"
 	)
 
+	// flag sets for getting arguments from command line
+	//
+	// environment used for setting application environment and logging
 	flag.StringVar(&environment, "environment", environment, `Set -environment to use load configurations for differenet environments and different log levels. Default is "local"`)
+	//
+	// configPath used for setting application configuration file path
 	flag.StringVar(&configPath, "path", configPath, `Set -path to use load configurations from given path which was given without file extension. Default is "./config/local"`)
-
+	// parse flags
 	flag.Parse()
 
 	log.Printf("process environment \"%s\"\n", environment)
@@ -34,11 +40,13 @@ func main() {
 
 	log.Println("Starting api server")
 
+	// load config from configPath
 	cfg, err := config.New(configPath)
 	if err != nil {
 		log.Fatalf("could not load configuration file: %v", err)
 	}
 
+	// get logger instance
 	logger := logger.New(cfg.Server.Mode, &cfg.Logger)
 	defer func() {
 		if err := logger.Sync(); err != nil {
@@ -48,6 +56,7 @@ func main() {
 
 	logger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s, SSL: %s", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode)
 
+	// connect to redis
 	redisClient := redis.NewClient(&cfg.Redis)
 	defer func() {
 		if err := redisClient.Close(); err != nil {
@@ -56,6 +65,7 @@ func main() {
 	}()
 	logger.Info("Redis connected")
 
+	// connect to jaeger and get closer function
 	jaegerCloser, err := jaeger.New(&cfg.Jaeger)
 	if err != nil {
 		logger.Fatalf("could not connect to jaeger: %v\n", err)
@@ -67,6 +77,10 @@ func main() {
 	}()
 	logger.Info("Jaeger connected")
 
+	// create validator singleton instance
+	validator.New()
+
+	// create new server instance and start server
 	s := server.NewServer(cfg, redisClient, logger)
 	if err := s.Run(); err != nil {
 		logger.Fatalf("could not run server: %v\n", err)
