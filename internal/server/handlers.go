@@ -17,7 +17,7 @@ import (
 )
 
 // Map Server Handlers
-func (s *Server) MapHandlers(e *echo.Echo) error {
+func (s *Server) MapHandlers() error {
 	// metrics, err := metric.CreateMetrics(s.cfg.Metrics.URL, s.cfg.Metrics.ServiceName)
 	// if err != nil {
 	// 	s.logger.Errorf("CreateMetrics Error: %s", err)
@@ -43,29 +43,29 @@ func (s *Server) MapHandlers(e *echo.Echo) error {
 	docs.SwaggerInfo.Description = "Go API for getting details block and transaction."
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.BasePath = "/v1"
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
+	s.echo.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+	s.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderXRequestID},
 	}))
-	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+	s.echo.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 		StackSize:         1 << 10, // 1 KB
 		DisablePrintStack: true,
 		DisableStackAll:   true,
 	}))
-	e.Use(middleware.RequestID())
+	s.echo.Use(middleware.RequestID())
 
-	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+	s.echo.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 5,
 		Skipper: func(c echo.Context) bool {
 			return strings.Contains(c.Request().URL.Path, "swagger")
 		},
 	}))
-	e.Use(middleware.Secure())
-	e.Use(middleware.BodyLimit("2M"))
+	s.echo.Use(middleware.Secure())
+	s.echo.Use(middleware.BodyLimit("2M"))
 
-	v1 := e.Group("/v1")
+	v1 := s.echo.Group("/v1")
 
 	health := v1.Group("/health")
 	ccrrGroup := v1.Group("/")

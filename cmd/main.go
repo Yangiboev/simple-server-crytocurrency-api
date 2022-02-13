@@ -10,6 +10,7 @@ import (
 	"github.com/Yangiboev/simple-server-crytocurrency-api/pkg/logger"
 	redis "github.com/Yangiboev/simple-server-crytocurrency-api/pkg/redis"
 	"github.com/Yangiboev/simple-server-crytocurrency-api/pkg/validator"
+	"github.com/labstack/echo/v4"
 )
 
 // @title Go REST API
@@ -80,8 +81,11 @@ func main() {
 	// create validator singleton instance
 	validator.New()
 
+	// create echo router instance
+	echo := echo.New()
+
 	// create new server instance and start server
-	s := server.NewServer(cfg, redisClient, logger)
+	s := server.New(cfg, echo, redisClient, logger)
 	if err := s.Run(); err != nil {
 		logger.Fatalf("could not run server: %v\n", err)
 	}
