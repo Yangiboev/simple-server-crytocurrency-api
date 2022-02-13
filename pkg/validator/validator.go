@@ -10,7 +10,7 @@ import (
 // Use a single instance of Validate, it caches struct info
 var (
 	validate *validator.Validate
-	once     *sync.Once
+	once     sync.Once
 )
 
 func New() {
