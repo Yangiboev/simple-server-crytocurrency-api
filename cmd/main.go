@@ -6,14 +6,9 @@ import (
 
 	"github.com/Yangiboev/simple-server-crytocurrency-api/config"
 	"github.com/Yangiboev/simple-server-crytocurrency-api/internal/server"
+	"github.com/Yangiboev/simple-server-crytocurrency-api/pkg/jaeger"
 	"github.com/Yangiboev/simple-server-crytocurrency-api/pkg/logger"
 	redis "github.com/Yangiboev/simple-server-crytocurrency-api/pkg/redis"
-	"github.com/opentracing/opentracing-go"
-	jaegerlog "github.com/uber/jaeger-client-go/log"
-	"github.com/uber/jaeger-lib/metrics"
-
-	"github.com/uber/jaeger-client-go"
-	jaegercfg "github.com/uber/jaeger-client-go/config"
 )
 
 // @title Go REST API
@@ -41,13 +36,13 @@ func main() {
 
 	cfg, err := config.New(configPath)
 	if err != nil {
-		log.Fatalf("can not load configuration file: %v", err)
+		log.Fatalf("could not load configuration file: %v", err)
 	}
 
 	logger := logger.New(cfg.Server.Mode, &cfg.Logger)
 	defer func() {
 		if err := logger.Sync(); err != nil {
-			log.Fatalf("could not sync logger: %v\n", err)
+			logger.Errorf("could not sync logger: %v\n", err)
 		}
 	}()
 
@@ -56,38 +51,24 @@ func main() {
 	redisClient := redis.NewClient(&cfg.Redis)
 	defer func() {
 		if err := redisClient.Close(); err != nil {
-			log.Fatalf("could not close redis client: %v\n", err)
+			logger.Errorf("could not close redis client: %v\n", err)
 		}
 	}()
 	logger.Info("Redis connected")
 
-	jaegerCfgInstance := jaegercfg.Configuration{
-		ServiceName: cfg.Jaeger.ServiceName,
-		Sampler: &jaegercfg.SamplerConfig{
-			Type:  jaeger.SamplerTypeConst,
-			Param: 1,
-		},
-		Reporter: &jaegercfg.ReporterConfig{
-			LogSpans:           cfg.Jaeger.LogSpans,
-			LocalAgentHostPort: cfg.Jaeger.Host,
-		},
-	}
-
-	tracer, closer, err := jaegerCfgInstance.NewTracer(
-		jaegercfg.Logger(jaegerlog.StdLogger),
-		jaegercfg.Metrics(metrics.NullFactory),
-	)
+	jaegerCloser, err := jaeger.New(&cfg.Jaeger)
 	if err != nil {
-		log.Fatal("cannot create tracer", err)
+		logger.Fatalf("could not connect to jaeger: %v\n", err)
 	}
+	defer func() {
+		if err := jaegerCloser(); err != nil {
+			logger.Errorf("could not close jaeger client: %v\n", err)
+		}
+	}()
 	logger.Info("Jaeger connected")
 
-	opentracing.SetGlobalTracer(tracer)
-	defer closer.Close()
-	logger.Info("Opentracing connected")
-
 	s := server.NewServer(cfg, redisClient, logger)
-	if err = s.Run(); err != nil {
-		log.Fatal(err)
+	if err := s.Run(); err != nil {
+		logger.Fatalf("could not run server: %v\n", err)
 	}
 }
