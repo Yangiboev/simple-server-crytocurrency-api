@@ -53,8 +53,12 @@ func main() {
 
 	logger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s, SSL: %s", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode)
 
-	redisClient := redis.NewRedisClient(cfg)
-	defer redisClient.Close()
+	redisClient := redis.NewClient(&cfg.Redis)
+	defer func() {
+		if err := redisClient.Close(); err != nil {
+			log.Fatalf("could not close redis client: %v\n", err)
+		}
+	}()
 	logger.Info("Redis connected")
 
 	jaegerCfgInstance := jaegercfg.Configuration{
