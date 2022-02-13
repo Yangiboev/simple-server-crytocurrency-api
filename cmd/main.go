@@ -39,14 +39,9 @@ func main() {
 
 	log.Println("Starting api server")
 
-	cfgFile, err := config.Load(configPath)
+	cfg, err := config.New(configPath)
 	if err != nil {
-		log.Fatalf("can not load configuration file by given path \"%s\": %v", configPath, err)
-	}
-
-	cfg, err := config.Parse(cfgFile)
-	if err != nil {
-		log.Fatalf("can not parse configuration file: %v", err)
+		log.Fatalf("can not load configuration file: %v", err)
 	}
 
 	logger := logger.New(cfg.Server.Mode, &cfg.Logger)
