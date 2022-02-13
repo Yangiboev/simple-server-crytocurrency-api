@@ -63,8 +63,5 @@ down-local:
 	docker stop $(FILES)
 	docker rm $(FILES)
 
-clean:
-	docker system prune -f
-
 logs-local:
 	docker logs -f $(FILES)
